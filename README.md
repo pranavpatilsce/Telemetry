@@ -1,5 +1,9 @@
 # Telemetry
 
+[![Telemetry Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/kammce/Telemetry)
+[![Build Status](https://api.travis-ci.org/kammce/Telemetry.svg?branch=master)](https://travis-ci.org/kammce/Telemetry)
+<!-- [![Inline docs](http://inch-ci.org/github/kammce/RoverCore-MC.svg?branch=master&style=shields)](http://inch-ci.org/github/kammce/RoverCore-MC) -->
+
 Software for inspecting, visualizing and modifying variables within a embedded processors.
 
 # License
