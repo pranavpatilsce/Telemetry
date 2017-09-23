@@ -1,0 +1,14 @@
+sudo: true
+dist:
+  - trusty
+  - osx
+group: edge
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "trusty" ]]; apt install python-pip ; fi
+  - pip install virtualenv
+  - ./setup
+script:
+  - ./telemetry &
+  - sleep 2
+  - wget http://localhost:5001
+# after_success:
