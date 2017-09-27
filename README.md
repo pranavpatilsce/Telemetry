@@ -11,7 +11,6 @@ You need **python 2.x**, **pip** and **virtualenv** installed prior to installat
 
 ## Install Dependencies on Ubuntu
 1. `sudo apt install python python-pip virtualenv`
-2.
 
 ## Install on Mac OSX
 1. Install Python: `brew install python`
