@@ -53,6 +53,13 @@ Run the following in the project root: `./telemetry.py`
 1. Activate virtual environment: `source modules/bin/activate`
 2. Run the following in the project root: `python Telemetry.py`
 
+# Change Log
+
+## Update 09.27.2017
+
+* Fixed KeyboardInterrupt by removing python thread and putting everything on one thread (main Flask thread).
+* Now works with Python 3
+
 # License
 
     kammce.io - Copyright (C) 2017

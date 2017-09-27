@@ -58,7 +58,7 @@ app                             = Flask(__name__)
 app.debug                       = False
 
 # SERIAL DATA STORAGE
-serial_output                   = ""
+serial_output                   = b""
 baudrate                        = 38400
 
 # SETUP SERIAL PORT
@@ -68,7 +68,7 @@ ser.baudrate                    = baudrate
 ser.rts                         = False
 ser.dtr                         = False
 ser.timeout                     = 0
-current_prompt                  = ""
+current_prompt                  = b""
 
 # THREAD VARIABLES
 lock = threading.Lock()
@@ -78,29 +78,25 @@ def read_serial():
     global state
     global current_prompt
 
-    while True:
-        time.sleep(10 * MILLIS_RATIO)
-        # If we are
-        if ser.is_open == True:
-            # Check if system is booting
-            if state == State.SYSTEM_BOOTING:
-                # If we find a LPC: prompt, then we change state to ONLINE_SYS_PROMPT
-                for prompt in POSSIBLE_PROMPTS:
-                    if serial_output.rfind(prompt) != -1:
-                        state = State.ONLINE_SYS_PROMPT
-                        current_prompt = prompt
+    if ser.is_open == True:
+        # Check if system is booting
+        if state == State.SYSTEM_BOOTING:
+            # If we find a LPC: prompt, then we change state to ONLINE_SYS_PROMPT
+            for prompt in POSSIBLE_PROMPTS:
+                if serial_output.rfind(prompt) != -1:
+                    state = State.ONLINE_SYS_PROMPT
+                    current_prompt = prompt
 
-            # Lock control of serial device
-            lock.acquire()
-            try:
-                # Read from serial device
-                serial_output += ser.read(SERIAL_READ_CONSTANT_LENGTH)
-                serial_output = serial_output.replace('\r', '')
-            except (Exception, e):
-                print("Serial read exception: " + str(e))
-                continue
-            # Release serial lock
-            lock.release()
+        # Lock control of serial device
+        lock.acquire()
+        try:
+            # Read from serial device
+            serial_output += ser.read(ser.inWaiting()).decode() # "utf-8", "ignore"
+            serial_output = serial_output.replace('\r', '')
+        except Exception as e:
+            print("Serial read exception: " + str(e))
+        # Release serial lock
+        lock.release()
 
 def get_telemetry():
     global serial_output
@@ -115,19 +111,15 @@ def get_telemetry():
     telemetry_msg = "telemetry ascii\n"
 
     if ser.is_open == True and state == State.ONLINE_SYS_PROMPT:
-        # if serial_output.endswith(POSSIBLE_PROMPTS):
-        #     ser.write(telemetry_msg)
-        # else:
-        #     ser.write("\n"+telemetry_msg)
-        ser.write(telemetry_msg)
+        ser.write(telemetry_msg.encode())
 
         while(not done):
             time.sleep(10 * MILLIS_RATIO)
 
             try:
-                serial_output += ser.read(SERIAL_READ_CONSTANT_LENGTH)
-            except (Exception, e):
-                print("Serial read exception" + str(e))
+                serial_output += ser.read(ser.inWaiting()).decode() # "utf-8", "ignore"
+            except Exception as e:
+                print("Telemetry Serial read exception" + str(e))
                 continue
 
             end_array = FULL_TELEMETRY_PATTERN.findall(serial_output)
@@ -225,6 +217,7 @@ def disconnect():
 # Return serial_output
 @app.route('/serial')
 def serial():
+    read_serial()
     return serial_output
 # Serial write string (payload) to serial device
 @app.route('/write/<string:payload>/<int:carriage_return>/<int:newline>')
@@ -241,7 +234,7 @@ def write(payload="", carriage_return=0, newline=0):
 
     payload = payload+cr+nl
 
-    ser.write(payload.encode('utf-8'))
+    ser.write(payload.encode())
     lock.release()
     return SUCCESS
 # Perform a telemetry set variable operation
@@ -249,18 +242,18 @@ def write(payload="", carriage_return=0, newline=0):
 def set(component_name, variable_name, value):
     lock.acquire()
     payload = "telemetry %s %s %s\n" % (component_name, variable_name, value)
-    ser.write(payload.encode('utf-8'))
+    ser.write(payload.encode())
     lock.release()
     return SUCCESS
 
-# Open This application's web URL in default browser
-webbrowser.open('http://localhost:5001')
-# Turn on read serial thread
-thread = threading.Thread(target=read_serial)
-# Allow it to work in the background, but also die when main thread is killed
-thread.daemon = True
-# Start the thread
-thread.start()
-
 if __name__ == "__main__":
-    app.run("localhost", 5001)
+    # Open This application's web URL in default browser
+    webbrowser.open('http://localhost:5001', 2)
+    # Run Flask Application
+    try:
+        app.run("localhost", 5001)
+    except KeyboardInterrupt as e:
+        print(str(e))
+        quit()
+        pass
+
