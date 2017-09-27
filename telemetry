@@ -7,10 +7,8 @@ REALDIR=$(readlink "$0" | xargs dirname)
 if [[ ! -z "$REALDIR" ]]; then
 	# Activate the python virtual environment
 	source $REALDIR/modules/bin/activate
-	export FLASK_APP="$REALDIR/app/Telemetry.py"
+	python $REALDIR/Telemetry.py
 else
 	source ./modules/bin/activate
-	export FLASK_APP="app/Telemetry.py"
+	python Telemetry.py
 fi
-
-flask run -p 5001

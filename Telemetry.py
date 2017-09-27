@@ -55,7 +55,7 @@ PARTIAL_TELEMETETRY_PATTERN     = re.compile('(?s)'+PROMPT_CAPTURE_GROUP+'teleme
 
 # SETUP FLASK APPLICATION
 app                             = Flask(__name__)
-app.debug                       = True
+app.debug                       = False
 
 # SERIAL DATA STORAGE
 serial_output                   = ""
@@ -96,7 +96,7 @@ def read_serial():
                 # Read from serial device
                 serial_output += ser.read(SERIAL_READ_CONSTANT_LENGTH)
                 serial_output = serial_output.replace('\r', '')
-            except Exception, e:
+            except (Exception, e):
                 print("Serial read exception: " + str(e))
                 continue
             # Release serial lock
@@ -126,7 +126,7 @@ def get_telemetry():
 
             try:
                 serial_output += ser.read(SERIAL_READ_CONSTANT_LENGTH)
-            except Exception, e:
+            except (Exception, e):
                 print("Serial read exception" + str(e))
                 continue
 
@@ -262,3 +262,5 @@ thread.daemon = True
 # Start the thread
 thread.start()
 
+if __name__ == "__main__":
+    app.run("localhost", 5001)

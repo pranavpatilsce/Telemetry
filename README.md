@@ -6,6 +6,54 @@
 
 Software for inspecting, visualizing and modifying variables within a embedded processors.
 
+# Prerequisites
+You need **python 2.x**, **pip** and **virtualenv** installed prior to installation.
+
+## Install Dependencies on Ubuntu
+1. `sudo apt install python python-pip virtualenv`
+2.
+
+## Install on Mac OSX
+1. Install Python: `brew install python`
+2. Install pip: already installed from installing python
+3. Install virtualenv: `pip install virtualenv`
+
+## Install on Windows
+1. Install latest Python2.x & PIP: https://www.python.org/downloads/
+2. Install virtualenv: `pip install virtualenv`
+
+# Install
+
+0. Install Dependencies
+
+1. Clone repository or download .zip
+
+    git clone https://github.com/kammce/Telemetry.git
+
+2. If you are on OSX or Linux Run **setup** script. If Windows, Do step 2.1
+
+    ./setup
+
+2. If Windows:
+
+    1. Create a virtual environemnt: `virtualenv modules`
+    2. Activate virtual environment: `source modules/bin/activate`
+    3. Install requirements: `pip install -r ./requirements.txt`
+    4. To deactivate virtual by: `deactivate`
+
+3. Done!
+
+# To run:
+
+## On Linux or OSX
+
+Run the following in the project root: `./telemetry.py`
+
+## On Windows
+
+1. Activate virtual environment: `source modules/bin/activate`
+2. Run the following in the project root: `python Telemetry.py`
+
 # License
 
     kammce.io - Copyright (C) 2017
