@@ -1,14 +1,8 @@
 #!/bin/bash
 
 # Find the directory that contains the physical script file
-REALDIR=$(readlink "$0" | xargs dirname)
-
-# Set flask application python script target and start on 5001
-if [[ ! -z "$REALDIR" ]]; then
-	# Activate the python virtual environment
-	source $REALDIR/modules/bin/activate
-	python $REALDIR/Telemetry.py
-else
-	source ./modules/bin/activate
-	python Telemetry.py
-fi
+REALDIR=$(readlink -f "$0" | xargs dirname)
+# Activate the python virtual environment
+source $REALDIR/modules/bin/activate
+# Start Telemetry server
+python $REALDIR/telemetry.py
