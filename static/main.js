@@ -72,7 +72,7 @@ const GRAPHING_OPTIONS = {
 
 const DEFAULT_PERIOD    = 1000;
 const SUCCESS           = "SUCCESS";
-const URL               = "http://localhost:5001";
+const URL               = window.location.href.replace(/\/$/, "");;
 const DOWN_ARROW        = 38;
 const UP_ARROW          = 40;
 const ENTER_KEY         = 13;
@@ -166,6 +166,7 @@ function updateScroll()
 
 $("#refresh").on("click", () =>
 {
+    console.log(`${URL}/list`);
     $.get(`${URL}/list`, function( data )
     {
         var new_list = [];
@@ -615,13 +616,32 @@ function getSerial()
 {
     if(device_connected && server_connected)
     {
-        $.get(`${URL}/serial`, function( data )
-        {
-            if(data !== serial)
+
+        $.ajax({
+            url: `${URL}/serial`,
+            type: 'GET',
+            success: (data) =>
             {
-                serial = data;
-                $("#serial-output").val(serial);
-                updateScroll();
+                if(data !== serial)
+                {
+                    serial = data;
+                    $("#serial-output").val(serial);
+                    updateScroll();
+                }
+            },
+            error: () =>
+            {
+                console.log("400 error!");
+                device_connected = false;
+
+                $("#connect")
+                    .addClass("btn-outline-success")
+                    .removeClass("btn-outline-danger")
+                    .text("Connect");
+
+                $("#refresh").click();
+
+                $('#serial-disconnect-modal').modal('show');
             }
         });
     }

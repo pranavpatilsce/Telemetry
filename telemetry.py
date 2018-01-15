@@ -19,7 +19,7 @@
  #
 
 from __future__ import division
-from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask import Flask, render_template, send_from_directory, abort
 import threading
 import serial
 import serial.tools.list_ports
@@ -30,6 +30,7 @@ import re
 import os
 import logging
 import webbrowser
+import sys
 from enum import Enum
 
 log = logging.getLogger('werkzeug')
@@ -78,6 +79,8 @@ def read_serial():
     global state
     global current_prompt
 
+    success = True
+
     if ser.is_open == True:
         # Check if system is booting
         if state == State.SYSTEM_BOOTING:
@@ -95,8 +98,12 @@ def read_serial():
             serial_output = serial_output.replace('\r', '')
         except Exception as e:
             print("Serial read exception: " + str(e))
+            if(str(e) == "[Errno 5] Input/output error"):
+                success = False
         # Release serial lock
         lock.release()
+
+    return success
 
 def get_telemetry():
     global serial_output
@@ -217,7 +224,10 @@ def disconnect():
 # Return serial_output
 @app.route('/serial')
 def serial():
-    read_serial()
+    success = read_serial()
+    if(not success):
+        print("should be giving a 400 error right now!")
+        abort(400)
     return serial_output
 # Serial write string (payload) to serial device
 @app.route('/write/<string:payload>/<int:carriage_return>/<int:newline>')
@@ -247,13 +257,15 @@ def set(component_name, variable_name, value):
     return SUCCESS
 
 if __name__ == "__main__":
+    port = 5001
+    if len(sys.argv) == 2:
+        port = sys.argv[1]
     # Open This application's web URL in default browser
-    webbrowser.open('http://localhost:5001', 2)
+    webbrowser.open('http://localhost:%s' % (port), 2)
     # Run Flask Application
     try:
-        app.run("localhost", 5001)
+        app.run("localhost", port)
     except KeyboardInterrupt as e:
         print(str(e))
         quit()
         pass
-

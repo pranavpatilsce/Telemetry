@@ -5,4 +5,4 @@ REALDIR=$(readlink -f "$0" | xargs dirname)
 # Activate the python virtual environment
 source $REALDIR/modules/bin/activate
 # Start Telemetry server
-python $REALDIR/telemetry.py
+python $REALDIR/telemetry.py $1
