@@ -94,7 +94,7 @@ def read_serial():
         lock.acquire()
         try:
             # Read from serial device
-            serial_output += ser.read(ser.inWaiting()).decode() # "utf-8", "ignore"
+            serial_output += ser.read(ser.inWaiting()).decode(encoding='ascii', errors='ignore') # "utf-8", "ignore"
             serial_output = serial_output.replace('\r', '')
         except Exception as e:
             print("Serial read exception: " + str(e))
@@ -264,6 +264,7 @@ if __name__ == "__main__":
     webbrowser.open('http://localhost:%s' % (port), 2)
     # Run Flask Application
     try:
+        print("* Telemetry interface is available at this address http://localhost:%s/" % (port) )
         app.run("localhost", port)
     except KeyboardInterrupt as e:
         print(str(e))
