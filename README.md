@@ -10,7 +10,7 @@ Software for inspecting, visualizing and modifying variables within a embedded p
 You need **python 2.x**, **pip** and **virtualenv** installed prior to installation.
 
 ## Install Dependencies on Ubuntu
-1. `sudo apt install python python-pip virtualenv`
+`sudo apt install python python-pip virtualenv`
 
 ## Install on Mac OSX
 1. Install Python: `brew install python`
@@ -31,7 +31,7 @@ You need **python 2.x**, **pip** and **virtualenv** installed prior to installat
 
 2. If you are on OSX or Linux Run **setup** script. If Windows, Do step 2.1
 
-    ./setup
+    `./setup`
 
 2. If Windows:
 
@@ -40,20 +40,18 @@ You need **python 2.x**, **pip** and **virtualenv** installed prior to installat
     3. Install requirements: `pip install -r ./requirements.txt`
     4. To deactivate virtual by: `deactivate`
 
-3. Done!
+3. **DONE!**
 
 # To run:
 
-## On Linux or OSX
-
-Run the following in the project root: `./telemetry.py`
-
-## On Windows
-
-1. Activate virtual environment: `source modules/bin/activate`
-2. Run the following in the project root: `python Telemetry.py`
-
+1. Activate virtual environment: `source modules/bin/active`
+2. Run: `python Telemetry.py`
+3. **Done!** At this point, on Mac and Linux, your default browswer should have opened a new URL with telemetry in it. On windows enter `http://localhost:5001/` into your browser of choice.
 # Change Log
+
+## Update 05.11.2018
+
+* Fixed the fact that the instructions on README.md did not reference activating the virtual environment. 
 
 ## Update 09.27.2017
 
