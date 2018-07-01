@@ -31,6 +31,7 @@ import os
 import logging
 import webbrowser
 import sys
+import urllib
 from enum import Enum
 
 log = logging.getLogger('werkzeug')
@@ -51,7 +52,7 @@ SUCCESS                         = "SUCCESS"
 FAILURE                         = "FAILURE"
 POSSIBLE_PROMPTS                = ("LPC: ","CLI> ")
 PROMPT_CAPTURE_GROUP            = "("+("|".join(POSSIBLE_PROMPTS))+")"
-FULL_TELEMETRY_PATTERN          = re.compile('(?s)'+PROMPT_CAPTURE_GROUP+'telemetry ascii(.*)[\x03][\x03][\x04][\x04][ ]{3}Finished in [0-9]+ us[\r]*\n')
+FULL_TELEMETRY_PATTERN          = re.compile('telemetry\ ascii(.*?)[\x03][\x03][\x04][\x04][\ ]{3}(.*?)us', re.MULTILINE | re.DOTALL)
 PARTIAL_TELEMETETRY_PATTERN     = re.compile('(?s)'+PROMPT_CAPTURE_GROUP+'telemetry ascii(.*)')
 
 # SETUP FLASK APPLICATION
@@ -60,6 +61,7 @@ app.debug                       = False
 
 # SERIAL DATA STORAGE
 serial_output                   = b""
+serial_output_history           = b""
 baudrate                        = 38400
 
 # SETUP SERIAL PORT
@@ -76,6 +78,7 @@ lock = threading.Lock()
 
 def read_serial():
     global serial_output
+    global serial_output_history
     global state
     global current_prompt
 
@@ -86,7 +89,7 @@ def read_serial():
         if state == State.SYSTEM_BOOTING:
             # If we find a LPC: prompt, then we change state to ONLINE_SYS_PROMPT
             for prompt in POSSIBLE_PROMPTS:
-                if serial_output.rfind(prompt) != -1:
+                if serial_output_history.rfind(prompt) != -1:
                     state = State.ONLINE_SYS_PROMPT
                     current_prompt = prompt
 
@@ -95,7 +98,7 @@ def read_serial():
         try:
             # Read from serial device
             serial_output += ser.read(ser.inWaiting()).decode(encoding='ascii', errors='ignore') # "utf-8", "ignore"
-            serial_output = serial_output.replace('\r', '')
+            serial_output_history += serial_output
         except Exception as e:
             print("Serial read exception: " + str(e))
             if(str(e) == "[Errno 5] Input/output error"):
@@ -112,39 +115,33 @@ def get_telemetry():
     TIMEOUT_LIMIT = 1000 # ms
     # Define telemetry variable
     ''' The default and "invalid" telemetry value is an empty string '''
-    telemetry     = ""
-    done          = False
-    timeout_time  = 0
-    telemetry_msg = "telemetry ascii\n"
+    telemetry       = ""
+    done            = False
+    timeout_time    = 0
+    serial_response = ""
+    telemetry_msg   = "telemetry ascii\n"
+    # Flush the last serial data from port to serial_output
+    serial_output += ser.read(ser.inWaiting())\
+                        .decode(encoding='ascii', errors='ignore')
 
-    if ser.is_open == True and state == State.ONLINE_SYS_PROMPT:
+    if ser.is_open and state == State.ONLINE_SYS_PROMPT:
         ser.write(telemetry_msg.encode())
 
         while(not done):
             time.sleep(10 * MILLIS_RATIO)
 
             try:
-                serial_output += ser.read(ser.inWaiting()).decode() # "utf-8", "ignore"
+                serial_response += ser.read(ser.inWaiting()).decode()
             except Exception as e:
                 print("Telemetry Serial read exception" + str(e))
                 continue
 
-            end_array = FULL_TELEMETRY_PATTERN.findall(serial_output)
-
-            # print(serial_output)
-            # print(end_array)
-
-            if len(end_array) > 0:
-                telemetry  = end_array[-1][-1]
-                # If telemetry is found, trim it from the serial_output
-                serial_tmp = FULL_TELEMETRY_PATTERN.sub('', serial_output)
-                serial_tmp = PARTIAL_TELEMETETRY_PATTERN.sub('', serial_tmp)
-                serial_tmp = serial_tmp.replace('\r', '')
-                serial_output = serial_tmp
-                # if not serial_output.endswith(current_prompt):
-                #     serial_output += current_prompt
+            matches = FULL_TELEMETRY_PATTERN.findall(serial_response)
+            print(matches)
+            if len(matches) > 0:
                 done = True
-
+                telemetry  = matches[-1]
+            print(serial_response)
             timeout_time += DELAY_PERIOD
             if(timeout_time > TIMEOUT_LIMIT):
                 break
@@ -224,15 +221,19 @@ def disconnect():
 # Return serial_output
 @app.route('/serial')
 def serial():
+    global serial_output
     success = read_serial()
     if(not success):
         print("should be giving a 400 error right now!")
         abort(400)
-    return serial_output
+    payload = serial_output
+    serial_output = ""
+    return payload
 # Serial write string (payload) to serial device
 @app.route('/write/<string:payload>/<int:carriage_return>/<int:newline>')
 def write(payload="", carriage_return=0, newline=0):
     lock.acquire()
+    decoded_payload = urllib.unquote(payload).decode("ascii")
 
     cr = ""
     nl = ""
@@ -242,9 +243,9 @@ def write(payload="", carriage_return=0, newline=0):
     if newline == 1:
         nl = "\n"
 
-    payload = payload+cr+nl
+    decoded_payload = decoded_payload+cr+nl
 
-    ser.write(payload.encode())
+    ser.write(decoded_payload.encode())
     lock.release()
     return SUCCESS
 # Perform a telemetry set variable operation
