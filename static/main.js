@@ -151,15 +151,6 @@ function checkCookie(cookie)
     return result;
 }
 
-function updateScroll()
-{
-    if(scrolled_to_bottom)
-    {
-        var element = document.getElementById("serial-output");
-        element.scrollTop = element.scrollHeight;
-    }
-}
-
 //===================================
 //  Listeners
 //===================================
@@ -375,25 +366,6 @@ $('#newline-select').on('change', function()
     setCookie("newline-active", newline_active, 30);
 });
 
-$("#serial-output").on('scroll', function()
-{
-    const SCROLLBAR_OFFSET = 20; // 20px
-    var element = $("#serial-output");
-    var height = element.height();
-    var scrollTop = element.scrollTop();
-    var scrollHeight = element[0].scrollHeight;
-
-    var scroll_distance = SCROLLBAR_OFFSET+scrollTop+height;
-    if(scrollHeight <= scroll_distance)
-    {
-        scrolled_to_bottom = true;
-    }
-    else
-    {
-        scrolled_to_bottom = false;
-    }
-});
-
 //===================================
 //  Parsers & Generator Functions
 //===================================
@@ -572,6 +544,7 @@ function getTelemetry()
     {
         $.get(`${URL}/telemetry`, function (data)
         {
+            console.log(data);
             if(data === "\r\n" || data === "")
             {
                 console.log("rejecting");
@@ -628,7 +601,6 @@ function getSerial()
 {
     if(device_connected && server_connected)
     {
-
         $.ajax({
             url: `${URL}/serial`,
             type: 'GET',
@@ -637,8 +609,8 @@ function getSerial()
                 if(data !== serial)
                 {
                     serial = data;
-                    $("#serial-output").val(serial);
-                    updateScroll();
+                    data = data.replace(/\n/g, '\r\n');
+                    term.write(data);
                 }
             },
             error: () =>
@@ -684,10 +656,57 @@ function checkConnection()
 //  Initialize everything
 //===================================
 
+Terminal.applyAddon(fit);
+
+var term = new Terminal({
+    // bellSound: "both",
+    // bellStyle: "sound",
+    cursorBlink: true,
+    lineHeight: 1,
+    fontFamily: "monospace",
+    scrollback: 2^16,
+});
+
+$(window).resize(() => {
+    term.fit();
+});
+
+term.on('key', function (key, ev) {
+    if(ev.code == "Backspace") 
+    {
+        key = "\b";
+    }
+    if(key == "\r")
+    {
+        key += "\n";    
+    }
+    $.get(`${URL}/write/${encodeURI(key)}/0/0`, function( data )
+    {
+        if(data === SUCCESS)
+        {
+            console.info("WRITE SUCCESS!");
+        }
+        else
+        {
+            console.info("WRITE FAILURE!");
+        }
+    });
+});
+
+term.on('linefeed', function (key, ev) {
+    console.log("linefeed!");
+});
+
+term.on('data', function (data, ev) {
+    console.log(data);
+});
+
 window.onload = function()
 {
     setTimeout(function()
     {
+        term.open(document.querySelector('#terminal'));
+        term.fit();
         checkConnection();
         getSerial();
         getTelemetry();

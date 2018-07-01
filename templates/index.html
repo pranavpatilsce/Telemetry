@@ -29,6 +29,8 @@
     <meta name="author" content="Khalil A. Estell">
     <meta name="description" content="Web Interface to display and modify firmware variables within the SJOne Development board.">
     <title>SJOne Telemetry</title>
+    <!-- xterm.js stylesheet-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='lib/xterm/dist/xterm.css') }}">
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='lib/bootstrap-4.0.0-alpha.6/css/bootstrap.min.css') }}">
     <!-- Custom styles for this template -->
@@ -113,7 +115,8 @@
                         <button id="serial-send" class="btn btn-secondary btn-outline-info" type="button">Send</button>
                     </span>
                 </div>
-                <textarea disabled id="serial-output" class="form-control fill"></textarea>
+                <div id="terminal" style="height:80%"></div>
+                <textarea disabled id="serial-output" style="display:none" class="form-control fill"></textarea>
             </main>
             <main class="col-sm-12 col-md-12 col-lg-7">
                 <div style="display: inherit;">
@@ -221,6 +224,8 @@
     <script src="{{ url_for('static',filename='lib/highcharts/exporting.js') }}"></script>
     <script src="{{ url_for('static',filename='lib/export-csv-master/export-csv.js') }}"></script>
     <script src="{{ url_for('static',filename='highchart-options.js') }}"></script>
+    <script src="{{ url_for('static',filename='lib/xterm/dist/xterm.js') }}"></script>
+    <script src="{{ url_for('static',filename='lib/xterm/dist/addons/fit/fit.js') }}"></script> 
     <script src="{{ url_for('static',filename='main.js') }}"></script>
 </body>
 
