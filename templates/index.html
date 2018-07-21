@@ -67,6 +67,7 @@
                     <input class="form-check-input" disabled type="checkbox" value="reset" id="reset-on-connect" checked>
                     Reset On Connect
                 </label>
+                <button id="clear-cache-modal-open" class="btn btn-outline-danger clear-btn" style="margin-right: 10px;">Clear Command History</button>
                 <button class="btn btn-outline-info my-2 my-sm-0" style="margin-right: 10px;" id="refresh" type="submit">Refresh Devices</button>
                 <select class="custom-select mb-2 mr-sm-2 mb-sm-0" id="device-select">
                     <option value="-1" selected>Select Serial Device ...</option>
@@ -263,6 +264,24 @@
         </div>
       </div>
     </div>
+    <!-- Clear Command History Cache Modal -->
+    <div class="modal fade" id="clear-cache-modal" tabindex="-1" role="dialog" aria-labelledby="clear-cache-modalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="clear-cache-modalLabel">Clear Command History Cache?</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to clear the command history?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="clear-cache" class="btn btn-danger" data-dismiss="modal">Yes, Clear Command History</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -277,7 +296,7 @@
     <script src="{{ url_for('static',filename='lib/export-csv-master/export-csv.js') }}"></script>
     <script src="{{ url_for('static',filename='highchart-options.js') }}"></script>
     <script src="{{ url_for('static',filename='lib/xterm/dist/xterm.js') }}"></script>
-    <script src="{{ url_for('static',filename='lib/xterm/dist/addons/fit/fit.js') }}"></script> 
+    <script src="{{ url_for('static',filename='lib/xterm/dist/addons/fit/fit.js') }}"></script>
     <script src="{{ url_for('static',filename='main.js') }}"></script>
 </body>
 

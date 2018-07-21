@@ -197,7 +197,7 @@ $("#connect").on("click", () =>
                     .text("Disconnect");
                 $("#serial-baud-select").attr("disabled", "disabled");
             }
-            else 
+            else
             {
                 /* TODO: should show a model stating that connecting failed */
                 alert("Couldn't connect to device.");
@@ -326,6 +326,19 @@ $("#serial-baud-select").on("change", () =>
 $("#clear-button").on("click", () =>
 {
     term.write("\x1b[H\x1b[2J");
+});
+
+//Command History Code
+$("#clear-cache-modal-open").on("click",() =>
+{
+  $('#clear-cache-modal').modal('show');
+});
+
+$("#clear-cache").on("click", () =>
+{
+  command_history = [];
+  localStorage.setItem('command_history', JSON.stringify(command_history));
+  console.info("CLEARED COMMAND HISTORY AND CACHE");
 });
 
 $("#graph-frequency-select").on("change", () =>
@@ -653,6 +666,39 @@ function checkConnection()
 }
 
 //===================================
+//  Local Cache Functions
+//===================================
+
+function getCache()
+{
+  if (localStorage.getItem('command_history') != null)
+  {
+    var get_storage = JSON.parse(localStorage.getItem('command_history'));
+    command_history = get_storage;
+    console.info("COMMAND CACHE RETRIEVED");
+  }
+
+  else
+  {
+    command_history = [];
+    console.info("NO COMMAND CACHE");
+  }
+}
+
+window.onbeforeunload = function setCache()
+{
+  if (command_history.length > 100)
+  {
+    var sliced_history = [];
+    cached_history = command_history.slice(0,99);
+    localStorage.setItem('command_history', JSON.stringify(sliced_history));
+  }
+  else {
+    localStorage.setItem('command_history', JSON.stringify(command_history));
+  }
+}
+
+//===================================
 //  Initialize everything
 //===================================
 
@@ -672,13 +718,13 @@ $(window).resize(() => {
 });
 
 term.on('key', function (key, ev) {
-    if(ev.code == "Backspace") 
+    if(ev.code == "Backspace")
     {
         key = "\b";
     }
     if(key == "\r")
     {
-        key += "\n";    
+        key += "\n";
     }
     $.get(`${URL}/write/${encodeURI(key)}/0/0`, function( data )
     {
@@ -710,6 +756,7 @@ window.onload = function()
         checkConnection();
         getSerial();
         getTelemetry();
+        getCache();
         $("#refresh").click();
         //// TODO: Convert the items below into a for loop
         if(checkCookie('telemetry-on'))
