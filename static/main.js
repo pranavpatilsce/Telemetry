@@ -151,6 +151,19 @@ function checkCookie(cookie)
     return result;
 }
 
+function autoConnect(name, value){
+    if (typeof(Storage) !== "undefined") {
+        
+        localStorage.setItem(name, value);
+    
+    } else {
+        
+        alert("No browser support for Auto Connect feature.");
+    
+    }
+    
+}
+
 //===================================
 //  Listeners
 //===================================
@@ -186,6 +199,11 @@ $("#connect").on("click", () =>
             /* TODO: should show a model stating that connecting failed */
             return;
         }
+        var devicename = $("#device-select").name();
+        
+        
+        
+        autoConnect(devicename, device);
         $.get(`${URL}/connect?device=${device}`, function( data )
         {
             if(data === SUCCESS)
